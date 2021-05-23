@@ -7,7 +7,7 @@ from scipy.ndimage import generic_filter
 import matplotlib.pyplot as plt
 
 
-class Stencil:
+class CubicStencil:
     def __init__(self, key: int):
         assert 0 <= key < 512, f"key should be in range (0..512), but is {key}"
 
@@ -17,8 +17,8 @@ class Stencil:
 
     @classmethod
     def from_mat(self, mat: np.array):
-        key = Stencil._key(mat)
-        return Stencil(key)
+        key = CubicStencil._key(mat)
+        return CubicStencil(key)
 
     @property
     def core(self):
@@ -33,27 +33,27 @@ class Stencil:
 
 
 @dataclass
-class Board:
+class CubicBoard:
     binary_form: np.array
 
     def stencil_form(self, mode: str = "constant") -> np.array:
         def _mapping_function(mat_stencil):
-            return Stencil.from_mat(np.reshape(mat_stencil.astype(int), (3, 3))).key
+            return CubicStencil.from_mat(np.reshape(mat_stencil.astype(int), (3, 3))).key
 
         return generic_filter(
             self.binary_form, _mapping_function, (3, 3), mode=mode, cval=0, output="int"
         )
 
     @classmethod
-    def from_stencils(self, stencil_form: np.array) -> Board:
-        return Board((stencil_form >> 4) % 2)
+    def from_stencils(self, stencil_form: np.array) -> CubicBoard:
+        return CubicBoard((stencil_form >> 4) % 2)
 
     @classmethod
     def random(self, N: int, seed: int = None, fill_rate: float = 0.5):
         if seed is not None:
             np.random.seed(seed)
 
-        return Board(np.random.rand(N, N) < fill_rate)
+        return CubicBoard(np.random.rand(N, N) < fill_rate)
 
     def __repr__(self):
         return str(1 * self.binary_form)
@@ -63,5 +63,5 @@ class Board:
             fig, ax = plt.subplots(figsize=(10, 10))
         return plt.spy(self.binary_form, origin="upper")
 
-    def __eq__(self, other: Board):
+    def __eq__(self, other: CubicBoard):
         return np.all(self.binary_form == other.binary_form)
