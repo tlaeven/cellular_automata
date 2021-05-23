@@ -24,9 +24,6 @@ class Stencil:
     def core(self):
         return self.mat[1, 1]
 
-    def next_stencil(self, mapping: np.array) -> Stencil:
-        return Stencil(mapping[self.key])
-
     def _key(mat: np.array) -> int:
         b = mat.flatten()
         return b.dot(2 ** np.arange(b.size)[::-1])
